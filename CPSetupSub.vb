@@ -17,6 +17,7 @@ Sub CPAllSetup()
     Dim MyRange As Range
     Dim rng As Range
 
+'I was the worst for coming up with variable names, omg
     Dim aTbl As Table
     Dim aCol1 As Column
     Dim aRows As Integer
@@ -40,10 +41,13 @@ Sub CPAllSetup()
     Set o = ActiveDocument
     Dim newname As String
 
+'turns off track changse for final version
     o.TrackRevisions = Not o.TrackRevisions
+'search document name for ".", if it's there, remove it
     If InStrRev(o.Name, ".") <> 0 Then
         newname = Left(o.Name, InStrRev(o.Name, ".") - 1)
     End If
+'save new version to specific directory with new name
     ChangeFileOpenDirectory "C:\Users\171856123\Desktop\"
     o.SaveAs2 FileName:=newname & " - Final.doc" _
         , FileFormat:=wdFormatDocument, LockComments:=False, Password:="", _
@@ -51,6 +55,9 @@ Sub CPAllSetup()
         EmbedTrueTypeFonts:=False, SaveNativePictureFormat:=False, SaveFormsData _
         :=False, SaveAsAOCELetter:=False, CompatibilityMode:=0
 
+'now that a new document has been created, let's get to business.
+
+'find table of contents--the stuff I want to change is from that point onward.
     Set wholedoc = o.Range
     Set MyRange = o.Content
     MyRange.Find.Execute FindText:="Table of Contents", _
@@ -60,6 +67,7 @@ Sub CPAllSetup()
     End If
 
     'remove extra spaces
+    'for some reason there were often extra line breaks at the beginning of some pages.
     wholedoc.Find.ClearFormatting
     wholedoc.Find.Font.Size = 1
     wholedoc.Find.Replacement.ClearFormatting
@@ -77,7 +85,7 @@ Sub CPAllSetup()
     End With
     wholedoc.Find.Execute Replace:=wdReplaceAll
 
-    'Replace manual page breaks with section page breaks
+    'Replace manual page breaks with section page breaks (it threw off the formatting if they were inconsistent)
     Selection.HomeKey wdStory
     Selection.Find.ClearFormatting
     With Selection.Find
@@ -120,6 +128,11 @@ Sub CPAllSetup()
         End With
     Next Sec
 
+'go through the tables in the document and apply consisent formatting
+
+'Ok, I'm sure I had a great reason to for replacing spaces with a character that wouldn't appear anywhere else in the document, but why this order?
+'This would be to remove extra spaces that shouldn't be here
+
     For Each tbl In MyRange.Tables
         On Error Resume Next
         i = tbl.Rows.Count
@@ -139,6 +152,7 @@ Sub CPAllSetup()
             End With
             tbl.Range.Find.Execute Replace:=wdReplaceAll
             tbl.Rows.Alignment = wdAlignRowCenter
+            'set text allignment for tables
             For j = 1 To i
                 tbl.Rows(j).Cells.VerticalAlignment = wdCellAlignVerticalCenter
             Next j
